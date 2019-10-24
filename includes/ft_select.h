@@ -91,17 +91,18 @@ typedef struct 		s_signal
 t_term				g_term;
 
 int					main (int argc, char **argv);
-int                 s_moving(t_term *term, t_input *input);
-int					get_node_mouse(t_term *term);
+int                 s_moving(t_input *input);
+int					get_node_mouse();
 int					s_input_cleaner(t_input *input);
-void				selector(t_term *term, t_input *input);
+void				selector(t_input *input);
 void				window_size_val(int *col, int *lin);
 void				exit_suc(char *error);
 t_input				*sparser(char **argv, t_input *input);
-t_input 			*deleter(t_term *term, t_input *input);
-void				sprint(t_input *input, int width, t_term *term);
+t_input 			*deleter(t_input *input);
+void				sprint(t_input *input, int width);
 void				end_screen(int width);
 void				begin_screen(int width);
+void				sig_handler(int sig);
 
 
 

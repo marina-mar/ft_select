@@ -41,13 +41,13 @@
 	if (i == 0)
 		input_loc = &(input->next);
 	s_input_cleaner(input);
-	sprint(tmp, term->col_num, term);
-	tputs(tgoto(term->cursor, 0, 2), 1, ft_sputchar);
-	term->cursor_w = 0;
-	term->cursor_h = 2;
+	sprint(tmp, g_term.col_num, term);
+	tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
+	g_term.cursor_w = 0;
+	g_term.cursor_h = 2;
 }*/
 
-t_input *deleter(t_term *term, t_input *input)
+t_input *deleter(t_input *input)
 {
 	int i;
 	int mouse_on;
@@ -56,7 +56,7 @@ t_input *deleter(t_term *term, t_input *input)
 
 	i = 0;
 	tmp = input;
-	mouse_on = get_node_mouse(term);
+	mouse_on = get_node_mouse();
 	while (i < mouse_on)
 	{
 		input = input->next;
@@ -79,9 +79,9 @@ t_input *deleter(t_term *term, t_input *input)
 		(input->before)->next = input->next;
 	}
 	s_input_cleaner(input);
-	sprint(tmp, term->col_num, term);
-	tputs(tgoto(term->cursor, 0, 2), 1, ft_sputchar);
-	term->cursor_w = 0;
-	term->cursor_h = 2;
+	sprint(tmp, g_term.col_num);
+	tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
+	g_term.cursor_w = 0;
+	g_term.cursor_h = 2;
 	return (tmp);
 }

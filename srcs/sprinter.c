@@ -71,27 +71,34 @@ int		get_pad(t_input *input, int width, int height)
 	if ()
 }*/
 
-void	check_size(t_term *term)
+int	check_size(t_input *input)
 {
 	int w_need;
 	int h_need;
 	int orig_w;
 	int orig_h;
 
-	w_need = term->node_size * term->total_c;
-	h_need = (term->total_l + 2);
-	orig_w = term->col_num;
-	orig_h = term->line_num;
+	w_need = g_term.node_size * g_term.total_c;
+	h_need = (g_term.total_l + 2);
+	orig_w = g_term.col_num;
+	orig_h = g_term.line_num;
 	if (orig_w < w_need || orig_h < h_need)
 	{
-		ft_printf("%RHey! We need a little more space to print!\n Can you [[r e s i z e]] your terminal??%E");
-		while (term->col_num == orig_w && term->line_num == orig_h)
-		{
-		}
+		while (g_term.col_num == orig_h && orig_h == g_term.line_num)
+			;
+		g_term.total_c = (g_term.col_num / g_term.node_size) - 1;
+		w_need = g_term.node_size * g_term.total_c;
+		g_term.total_l = get_total_l(g_term.total_c, input);
+		h_need = g_term.total_l + 2;
+		if (g_term.col_num >= w_need && g_term.line_num >= h_need)
+			return (0);
+		else
+			return (-1);
 	}
+	return (0);
 }
 
-void	sprint(t_input *input, int width, t_term *term)
+void	sprint(t_input *input, int width)
 {
 	int i;
 	int j;
@@ -99,32 +106,38 @@ void	sprint(t_input *input, int width, t_term *term)
 
 	i = 1;
 	j = 0;
-	mouse_on = get_node_mouse(term);
-	term->node_size = maxstr(input);
-	term->total_c = (width / term->node_size) - 1;
-	ft_printf("%s", term->clean_screen);
-	term->total_l = get_total_l(term->total_c, input);
-	check_size(term);
+	mouse_on = get_node_mouse();
+	g_term.node_size = maxstr(input);
+	g_term.total_c = (width / g_term.node_size) - 1;
+	ft_printf("%s", g_term.clean_screen);
+	g_term.total_l = get_total_l(g_term.total_c, input);
+	if (check_size(input) == -1)
+	{
+		ft_printf("%RHey! We need a little more space to print!\n Can you [[r e s i z e]] your terminal??%E");
+		while (check_size(input) == -1)
+			;
+		ft_printf("%s", g_term.clean_screen);
+	}
 	begin_screen(width);
 	while (input != NULL)
 	{
-		if (i == term->total_c)
+		if (i == g_term.total_c)
 		{
 			ft_printf("\n");
 			i = 1;
 		}
 		if (j == mouse_on && input->is_selected == 1)
-			ft_printf("%R%-*s%E ", term->node_size, input->element);
+			ft_printf("%R%-*s%E ", g_term.node_size, input->element);
 		else if (j == mouse_on)
-			ft_printf("%G%-*s%E ", term->node_size, input->element);
+			ft_printf("%G%-*s%E ", g_term.node_size, input->element);
 		else if (input->is_selected == 1)
-		    ft_printf("%I%-*s%E ", term->node_size, input->element);
+		    ft_printf("%I%-*s%E ", g_term.node_size, input->element);
 		else
-			ft_printf("%C%-*s %E", term->node_size, input->element);
+			ft_printf("%C%-*s %E", g_term.node_size, input->element);
 		input = input->next;
 		i++;
 		j++;
 	}
-    term->last_line = i - 1;
+    g_term.last_line = i - 1;
 	end_screen(width);
 }

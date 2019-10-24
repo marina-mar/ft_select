@@ -12,42 +12,42 @@
 
 #include "../includes/ft_select.h"
 
-int get_node_mouse(t_term *term)
+int get_node_mouse()
 {
     int w;
     int h;
     int place;
 
-    w = (term->cursor_w) / (term->node_size + 1);
-    h = term->cursor_h;
-    place = ((term->total_c - 1) * (h - 2)) + w;
+    w = (g_term.cursor_w) / (g_term.node_size + 1);
+    h = g_term.cursor_h;
+    place = ((g_term.total_c - 1) * (h - 2)) + w;
     return (place);
 }
 
-void move_the_cursor(t_term *term)
+void move_the_cursor()
 {
-	if (term->cursor_w >= (term->node_size * (term->total_c - 2)) && (term->total_c > 1) && (term->cursor_h != term->total_l))
+	if (g_term.cursor_w >= (g_term.node_size * (g_term.total_c - 2)) && (g_term.total_c > 1) && (g_term.cursor_h != g_term.total_l))
 	{
-		term->cursor_w = 0;
-		term->cursor_h += 1;
+		g_term.cursor_w = 0;
+		g_term.cursor_h += 1;
 	}
-	else if ((term->cursor_h == term->total_l) && (term->cursor_w == ((term->last_line - 1)  * (term->node_size + 1))))
+	else if ((g_term.cursor_h == g_term.total_l) && (g_term.cursor_w == ((g_term.last_line - 1)  * (g_term.node_size + 1))))
 	{
-		term->cursor_w = 0;
-		term->cursor_h = 2;
+		g_term.cursor_w = 0;
+		g_term.cursor_h = 2;
 	}
-	else if (term->total_l > 1)
-		term->cursor_w += (term->node_size + 1);
+	else if (g_term.total_l > 1)
+		g_term.cursor_w += (g_term.node_size + 1);
 }
 
-void selector(t_term *term, t_input *input)
+void selector(t_input *input)
 {
 	t_input *tmp;
     int mouse_on;
     int i;
 
     i = 0;
-    mouse_on = get_node_mouse(term);
+    mouse_on = get_node_mouse();
     tmp = input;
     while (i < mouse_on)
     {
@@ -64,7 +64,7 @@ void selector(t_term *term, t_input *input)
 	else
 		input->is_selected = 1;
 	if (input->is_selected == 1)
-		move_the_cursor(term);
-    sprint(tmp, term->col_num, term);
-    tputs(tgoto(term->cursor, term->cursor_w, term->cursor_h), 1, ft_sputchar);
+		move_the_cursor();
+    sprint(tmp, g_term.col_num);
+    tputs(tgoto(g_term.cursor, g_term.cursor_w, g_term.cursor_h), 1, ft_sputchar);
 }

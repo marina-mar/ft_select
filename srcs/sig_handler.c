@@ -12,16 +12,19 @@
 
 #include "../includes/ft_select.h"
 
-void
-
-int sig_handler(int sig)
+void sigwin_hand()
 {
-	int okay;
+	char buffer[1024];
 
-	okay = 0;
-	if (sig == SIGINT)
-		okay = sigint_hand();
-	else if (sig == SIGWINCH)
-		okay = sigwin_hand();
-	return (okay);
+	g_term.t_desc = tgetent(buffer, g_term.t_name);
+	g_term.col_num = tgetnum("co");
+	g_term.line_num = tgetnum("li");
+}
+
+void sig_handler(int sig)
+{
+/*	if (sig == SIGINT)
+		sigint_hand();*/
+	if (sig == SIGWINCH)
+		sigwin_hand();
 }

@@ -12,66 +12,62 @@
 
 #include "./includes/ft_select.h"
 
-void	set_noncanonical(t_term *term)
+void	set_noncanonical()
 {
-	term->orig_attr = term->new_attr;
-	(term->new_attr).c_lflag &= ~(ICANON | ECHO);
-	(term->new_attr).c_cflag &= ~(CREAD);
-	(term->new_attr).c_cc[VMIN] = 0;
-	(term->new_attr).c_cc[VTIME] = 0;
-	if (tcsetattr(term->t_desc, TCSAFLUSH, &(term->new_attr)) == -1)
+	g_term.orig_attr = g_term.new_attr;
+	(g_term.new_attr).c_lflag &= ~(ICANON | ECHO);
+	(g_term.new_attr).c_cflag &= ~(CREAD);
+	(g_term.new_attr).c_cc[VMIN] = 0;
+	(g_term.new_attr).c_cc[VTIME] = 0;
+	if (tcsetattr(g_term.t_desc, TCSAFLUSH, &(g_term.new_attr)) == -1)
 		exit_suc("Can't set noncanonical mode!");
 }
 
-void	unset_noncanonical(t_term *term)
+void	unset_noncanonical()
 {
-	ft_printf("%s", term->clean_screen);
-	if (tcsetattr(term->t_desc, TCSAFLUSH, &(term->orig_attr)) == -1)
+	ft_printf("%s", g_term.clean_screen);
+	if (tcsetattr(g_term.t_desc, TCSAFLUSH, &(g_term.orig_attr)) == -1)
 		exit_suc("Can't unset noncanonical mode!");
 }
 
-void	get_term_info(t_term *term)
+void	get_term_info()
 {
 	char buffer[1024];
 	char *tmp;
 
-	if (!(term->t_name = getenv("TERM")))
+	if (!(g_term.t_name = getenv("TERM")))
 		exit_suc("Terminal type not found! Set type with: seotenv TERM [type]");
-	term->t_desc = tgetent(buffer, term->t_name);
-	if (term->t_desc < 0)
+	g_term.t_desc = tgetent(buffer, g_term.t_name);
+	if (g_term.t_desc < 0)
 		exit_suc("Could not access the termcap database!!");
-	window_size_val(&(term->col_num), &(term->line_num));
-	if (tcgetattr(term->t_desc, &(term->new_attr)) == -1)
+	if (tcgetattr(g_term.t_desc, &(g_term.new_attr)) == -1)
 		exit_suc("Could not get Terminal attributes");
-	term->buffer = ft_strnew(1024);
-	term->clean_screen = tgetstr("cl", &(term->buffer));
-	term->cursor = tgetstr("cm", &(term->buffer));
-	term->c_up = tgetstr("up", &(term->buffer));
-	term->c_down = tgetstr("do", &(term->buffer));
-	term->autowrap = tgetflag("am");
-	tmp = tgetstr("pc", &(term->buffer));
-	term->pc = tmp ? *tmp : 0;
-	term->bc = tgetstr("le", &(term->buffer));
+	g_term.col_num = tgetnum("co");
+	g_term.line_num = tgetnum("li");
+	g_term.buffer = ft_strnew(1024);
+	g_term.clean_screen = tgetstr("cl", &(g_term.buffer));
+	g_term.cursor = tgetstr("cm", &(g_term.buffer));
+	g_term.c_up = tgetstr("up", &(g_term.buffer));
+	g_term.c_down = tgetstr("do", &(g_term.buffer));
+	g_term.autowrap = tgetflag("am");
+	tmp = tgetstr("pc", &(g_term.buffer));
+	g_term.pc = tmp ? *tmp : 0;
+	g_term.bc = tgetstr("le", &(g_term.buffer));
 }
 
-void	managesignals(t_term *term, t_input *input)
+void	managesignals()
 {
-	if (signal(SIGWINCH, sig_handlr(SIGWINCH)) == SIG_ERR)
+	if (signal(SIGWINCH, sig_handler) == SIG_ERR)
 	{
-		ft_printf("%s", term->clean_screen);
+		ft_printf("%s", g_term.clean_screen);
 		ft_printf("%R%s%E\n", strerror(errno));
 	}
-	else
-	{
-		window_size_val(&(term->col_num), &(term->line_num));
-		sprinter(term, term->col_num, input);
-	}
+
 	//signal(SIGINT, sig_handlr(SIGINT));
 }
 
 int		main (int argc, char **argv)
 {
-	t_term	term;
 	t_input	*input;
 
 	input = NULL;
@@ -79,16 +75,15 @@ int		main (int argc, char **argv)
 		exit_suc("USAGE: ft_select argument 1 [argument 2] [argument ...]");
 	else
 	{
-		get_term_info(&term);
-		set_noncanonical(&term);
-		//managesignals();
+		get_term_info();
+		set_noncanonical();
 		input = sparser(argv, input);
-		term.total_l = 2;
-		sprint(input, term.col_num, &term);
-		tputs(tgoto(term.cursor, 0, 2), 1, ft_sputchar);
-		term.cursor_h = 2;
-		term.cursor_w = 0;
-		s_moving(&term, input);
-		unset_noncanonical(&term);
+		g_term.cursor_h = 2;
+		g_term.cursor_w = 0;
+		managesignals();
+		sprint(input, g_term.col_num);
+		tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
+		s_moving(input);
+		unset_noncanonical();
 	}
 }
