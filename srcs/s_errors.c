@@ -14,6 +14,6 @@
 
 void	exit_suc(char *error)
 {
-	ft_printf("%B|%E %R%s%E\n", error);
+	ft_printf("%R%s%E\n", error);
 	exit(EXIT_SUCCESS);
 }

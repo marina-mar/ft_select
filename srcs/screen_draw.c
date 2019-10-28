@@ -12,19 +12,24 @@
 
 #include "../includes/ft_select.h"
 
-void	begin_screen(int width)
+static void	first_line(int width)
 {
-	int spaces;
-	int print;
-
-	spaces = ((width - 9)/2);
-	print = 1;
 	while (width > 1)
 	{
 		ft_printf("%C_");
 		width--;
 	}
 	ft_printf("\n");
+}
+
+void		begin_screen(int width)
+{
+	int spaces;
+	int print;
+
+	spaces = ((width - 9) / 2);
+	print = 1;
+	first_line(width);
 	while (print < spaces)
 	{
 		ft_printf("%C_");
@@ -38,12 +43,11 @@ void	begin_screen(int width)
 		print++;
 	}
 	if (((width - 9) % 2) != 0)
-		ft_printf("__");
+		ft_printf("_");
 	ft_printf("\n");
-
 }
 
-void	end_screen(int width)
+void		end_screen(int width)
 {
 	int print;
 

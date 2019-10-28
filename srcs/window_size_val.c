@@ -11,9 +11,8 @@
 /* ************************************************************************** */
 
 #include "../includes/ft_select.h"
-#include <curses.h>
-#include <term.h>
-void window_size_val(int *col, int *lin)
+
+void	window_size_val(int *col, int *lin)
 {
 	*col = tgetnum("co");
 	*lin = tgetnum("li");

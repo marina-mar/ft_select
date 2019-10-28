@@ -12,20 +12,26 @@
 
 #include "../includes/ft_select.h"
 
-t_input		*sparser(char **argv, t_input *input)
+static t_input		*new(t_input *input)
+{
+	input = ft_memalloc(sizeof(t_input));
+	input->before = NULL;
+	input->next = NULL;
+	return (input);
+}
+
+t_input				*sparser(char **argv, t_input *input)
 {
 	t_input	*first;
 	t_input	*before;
-	int i;
+	int		i;
 
 	i = 1;
 	while (argv[i] != NULL)
 	{
 		if (i == 1)
 		{
-			input = ft_memalloc(sizeof(t_input));
-			input->before = NULL;
-			input->next = NULL;
+			input = new(input);
 			first = input;
 		}
 		else

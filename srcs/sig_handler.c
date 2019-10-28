@@ -12,7 +12,7 @@
 
 #include "../includes/ft_select.h"
 
-void sigwin_hand()
+static void	sigwin_hand(void)
 {
 	char buffer[1024];
 
@@ -21,10 +21,12 @@ void sigwin_hand()
 	g_term.line_num = tgetnum("li");
 }
 
-void sig_handler(int sig)
+void		sig_handler(int sig)
 {
-/*	if (sig == SIGINT)
-		sigint_hand();*/
 	if (sig == SIGWINCH)
 		sigwin_hand();
+	else if (sig == SIGCONT)
+		g_term.hold = 1;
+	else
+		g_term.close = 1;
 }

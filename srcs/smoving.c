@@ -12,114 +12,70 @@
 
 #include "../includes/ft_select.h"
 
-static int cursorleft(t_input *input)
+void		reset_select(t_input *input)
 {
-	if ((g_term.cursor_w == 0) && (g_term.cursor_h == 2) && (g_term.total_c > 1))
-	{
-		g_term.cursor_w = ((g_term.node_size + 1) * (g_term.last_line - 1));
-		g_term.cursor_h = g_term.total_l;
-	}
-	else if (g_term.cursor_w == 0)
-	{
-		g_term.cursor_w = ((g_term.node_size + 1) * (g_term.total_c - 2));
-		g_term.cursor_h -= 1;
-	}
-	else if (g_term.total_l > 1)
-		g_term.cursor_w -= (g_term.node_size + 1);
+	set_noncanonical();
 	ft_printf("%s", g_term.clean_screen);
+	g_term.hold = 0;
+	g_term.c_w = 0;
+	g_term.c_h = 2;
 	sprint(input, g_term.col_num);
-	tputs(tgoto(g_term.cursor, g_term.cursor_w, g_term.cursor_h), 1, ft_sputchar);
-	return (0);
+	tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
 }
 
-static int cursorright(t_input *input)
+void		resize_select(t_input *input)
 {
-	if (g_term.cursor_w >= (g_term.node_size * (g_term.total_c - 2)) && (g_term.total_c > 1) && (g_term.cursor_h != g_term.total_l))
+	g_term.c_w = 0;
+	g_term.c_h = 2;
+	sprint(input, g_term.col_num);
+	tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
+}
+
+t_input		*actions(long cursor, t_input *input)
+{
+	if (cursor == SPACE)
+		selector(input);
+	else
+		input = deleter(input);
+	return (input);
+}
+
+void		change_term(t_input *input)
+{
+	if (g_term.hold == 1)
+		reset_select(input);
+	if (g_term.col_num != g_term.orig_w || g_term.line_num != g_term.orig_h)
 	{
-		g_term.cursor_w = 0;
-		g_term.cursor_h += 1;
+		resize_select(input);
+		g_term.orig_w = g_term.col_num;
+		g_term.orig_h = g_term.line_num;
 	}
-	else if ((g_term.cursor_h == g_term.total_l) && (g_term.cursor_w == ((g_term.last_line - 1)  * (g_term.node_size + 1))))
-	{
-		g_term.cursor_w = 0;
-		g_term.cursor_h = 2;
-	}
-	else if (g_term.total_l > 1)
-		g_term.cursor_w += (g_term.node_size + 1);
-	ft_printf("%s", g_term.clean_screen);
-	sprint(input, g_term.col_num);
-	tputs(tgoto(g_term.cursor, g_term.cursor_w, g_term.cursor_h), 1, ft_sputchar);
-	return (0);
 }
 
-static int cursorup(t_input *input)
-{
-	int up_line;
-
-	up_line = (g_term.cursor_h - 1);
-	if ((g_term.cursor_h == 2) && (g_term.total_l > 2) && (g_term.cursor_w < ((g_term.last_line) * (g_term.node_size + 1))))
-		g_term.cursor_h = g_term.total_l;
-    else if ((g_term.cursor_h == 2) && (g_term.cursor_w >= ((g_term.last_line) * (g_term.node_size + 1))))
-        g_term.cursor_h = (g_term.total_l - 1);
-	else if (g_term.total_l > 2)
-		(g_term.cursor_h)--;
-	ft_printf("%s", g_term.clean_screen);
-	sprint(input, g_term.col_num);
-	tputs(tgoto(g_term.cursor, g_term.cursor_w, g_term.cursor_h), 1, ft_sputchar);
-	return (0);
-}
-
-static int cursordown(t_input *input)
-{
-	int down_line;
-
-	down_line = (g_term.cursor_h + 1);
-	if ((g_term.cursor_h == g_term.total_l) && (g_term.total_l > 2))
-		g_term.cursor_h = 2;
-    else if ((g_term.cursor_h == (g_term.total_l - 1)) && (g_term.cursor_w >= ((g_term.last_line)  * (g_term.node_size + 1))))
-        g_term.cursor_h = 2;
-	else if (g_term.total_l > 2)
-		(g_term.cursor_h)++;
-	ft_printf("%s", g_term.clean_screen);
-	sprint(input, g_term.col_num);
-	tputs(tgoto(g_term.cursor, g_term.cursor_w, g_term.cursor_h), 1, ft_sputchar);
-	return (0);
-}
-
-int		s_moving(t_input *input)
+t_input		*s_moving(t_input *input)
 {
 	long	cursor;
-	int		ret;
-	int orig_w;
-	int orig_h;
 
-	orig_w = g_term.col_num;
-	orig_h = g_term.line_num;
-	while (1)
+	g_term.orig_w = g_term.col_num;
+	g_term.orig_h = g_term.line_num;
+	while (g_term.close == 0)
 	{
-		if (g_term.col_num != orig_w || g_term.line_num != orig_h)
+		read(STDERR_FILENO, &cursor, 4);
+		if (g_term.hold == 1 || g_term.col_num != g_term.orig_w ||
+		g_term.line_num != g_term.orig_h)
+			change_term(input);
+		if (cursor == UP || cursor == DOWN || cursor == RIGHT || cursor == LEFT)
+			cursor_move(cursor, input);
+		else if (cursor == SPACE || cursor == DELETE || cursor == BSPACE)
+			input = actions(cursor, input);
+		else if (cursor == ENTER)
 		{
-			g_term.cursor_w = 0;
-			g_term.cursor_h = 2;
-			sprint(input, g_term.col_num);
-			tputs(tgoto(g_term.cursor, 0, 2), 1, ft_sputchar);
-			orig_w = g_term.col_num;
-			orig_h = g_term.line_num;
+			g_term.print = 1;
+			break ;
 		}
-		ret = read(g_term.t_desc, &cursor, 4);
-		if (cursor == UP)
-			cursorup(input);
-		else if (cursor == DOWN)
-			cursordown(input);
-		else if (cursor == RIGHT)
-			cursorright(input);
-		else if (cursor == LEFT)
-			cursorleft(input);
-		else if (cursor == SPACE)
-		    selector(input);
-		else if (cursor == DELETE || cursor == BSPACE)
-			input = deleter(input);
+		else if (cursor == ESC)
+			break ;
 		cursor = 0;
 	}
-	return (0);
+	return (input);
 }

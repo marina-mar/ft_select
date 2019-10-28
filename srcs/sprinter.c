@@ -12,7 +12,7 @@
 
 #include "../includes/ft_select.h"
 
-int		maxstr(t_input *input)
+static int		maxstr(t_input *input)
 {
 	int size;
 
@@ -26,20 +26,7 @@ int		maxstr(t_input *input)
 	return (size);
 }
 
-int		count_str(t_input *input)
-{
-	int total;
-
-	total = 0;
-	while (input != NULL)
-	{
-		total++;
-		input = input->next;
-	}
-	return (total);
-}
-
-int		get_total_l(int total_c, t_input *input)
+static int		get_total_l(int total_c, t_input *input)
 {
 	int total;
 	int i;
@@ -58,20 +45,8 @@ int		get_total_l(int total_c, t_input *input)
 	}
 	return (total);
 }
-/*
-int		get_pad(t_input *input, int width, int height)
-{
-	int how_many_str;
-	int total;
-	int max;
 
-	total = get_total(input);
-	how_many_str = count_str(input);
-	max = maxstr(input);
-	if ()
-}*/
-
-int	check_size(t_input *input)
+static int		check_size(t_input *input)
 {
 	int w_need;
 	int h_need;
@@ -98,27 +73,13 @@ int	check_size(t_input *input)
 	return (0);
 }
 
-void	sprint(t_input *input, int width)
+static int		printer(t_input *input, int mouse_on)
 {
 	int i;
 	int j;
-	int mouse_on;
 
 	i = 1;
 	j = 0;
-	mouse_on = get_node_mouse();
-	g_term.node_size = maxstr(input);
-	g_term.total_c = (width / g_term.node_size) - 1;
-	ft_printf("%s", g_term.clean_screen);
-	g_term.total_l = get_total_l(g_term.total_c, input);
-	if (check_size(input) == -1)
-	{
-		ft_printf("%RHey! We need a little more space to print!\n Can you [[r e s i z e]] your terminal??%E");
-		while (check_size(input) == -1)
-			;
-		ft_printf("%s", g_term.clean_screen);
-	}
-	begin_screen(width);
 	while (input != NULL)
 	{
 		if (i == g_term.total_c)
@@ -131,13 +92,36 @@ void	sprint(t_input *input, int width)
 		else if (j == mouse_on)
 			ft_printf("%G%-*s%E ", g_term.node_size, input->element);
 		else if (input->is_selected == 1)
-		    ft_printf("%I%-*s%E ", g_term.node_size, input->element);
+			ft_printf("%I%-*s%E ", g_term.node_size, input->element);
 		else
 			ft_printf("%C%-*s %E", g_term.node_size, input->element);
 		input = input->next;
 		i++;
 		j++;
 	}
-    g_term.last_line = i - 1;
+	return (i);
+}
+
+void			sprint(t_input *input, int width)
+{
+	int ret;
+	int mouse_on;
+
+	mouse_on = get_node_mouse();
+	g_term.node_size = maxstr(input);
+	g_term.total_c = (width / g_term.node_size) - 1;
+	ft_printf("%s", g_term.clean_screen);
+	g_term.total_l = get_total_l(g_term.total_c, input);
+	if (check_size(input) == -1)
+	{
+		ft_printf("%RHey! We need a little more space to print!\n "
+			"Can you [[r e s i z e]] your terminal??%E");
+		while (check_size(input) == -1)
+			;
+		ft_printf("%s", g_term.clean_screen);
+	}
+	begin_screen(width);
+	ret = printer(input, mouse_on);
+	g_term.last_line = ret - 1;
 	end_screen(width);
 }
